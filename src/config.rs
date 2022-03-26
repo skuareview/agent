@@ -9,15 +9,15 @@ pub struct Config {
 
 impl Config {
     pub fn get_config(&mut self) {
-        let filename = "/etc/phantom-agent/config.toml";
+        let path_config_file = "/etc/phantom-agent/config.toml";
 
         // Read the contents of the file using a `match` block
         // to return the `data: Ok(c)` as a `String`
         // or handle any `errors: Err(_)`.
-        let contents = match fs::read_to_string(filename) {
+        let contents = match fs::read_to_string(path_config_file) {
             Ok(c) => c,
             Err(_) => {
-                eprintln!("Could not read file `{}`", filename);
+                eprintln!("Could not read file `{}`", path_config_file);
                 exit(1);
             }
         };
@@ -28,11 +28,20 @@ impl Config {
         let data: Config = match toml::from_str(&contents) {
             Ok(d) => d,
             Err(_) => {
-                eprintln!("Unable to load data from `{}`", filename);
+                eprintln!("Unable to load data from `{}`", path_config_file);
                 exit(1);
             }
         };
-        self.set_token(data.token)
+        // Verify if the token is already set
+        if (data.token) == "" {
+            println!(
+                "The token is empty, please fill the key 'token' here {}",
+                path_config_file
+            );
+            exit(1);
+        } else {
+            self.set_token(data.token)
+        }
     }
     // Setters
     fn set_token(&mut self, token: String) {
